@@ -1,86 +1,103 @@
 import numpy as np 
 import pandas as pd
 import matplotlib.pyplot as plt
-def plotData(X,y,admitted,not_admitted):
-    plt.scatter(admitted.iloc[:, 3], admitted.iloc[:, 10], s=10, label='Benign')
-    plt.scatter(not_admitted.iloc[:, 3], not_admitted.iloc[:, 10], s=10, label='Malignant')
-    plt.legend()
     
 def sigmoid(z):
-    
     z = np.array(z)
     g = np.zeros(z.shape)
-    g=1 / (1 + np.exp(-z))
-    return g      
+    # print(z)
+    g = 1 / (1 + np.exp(-z))
 
-def h(theta,x):
-    h=sigmoid(np.dot(x,theta))
-    return h 
+    return g
+
+def h_1(theta,x):
+    h = sigmoid(np.dot(x, theta))
+
+    return h
+
      
 def computeCost(x, y, theta):
-    m = y.size 
-    J =((np.sum(-y*np.log(h(theta,x))-(1-y)*(np.log(1-h(theta,x))))))/m
+    m = y.size
+    h = h_1(theta, x)
+    J = -(np.sum(y * np.log(sigmoid(h)) + (1 - y) * np.log(1 - sigmoid(h))) / m)
+
     return J
 
-def gradientDescent(x, y, theta, alpha, num_iters):
+def gradientDescent(x, y, theta, alpha, iterations):
     
-    m = y.size 
-    
-   
+    m = y.size
     theta = theta.copy()
-    print(theta.shape)
-    
-  
-    J_history = [] 
+    J_history = []
     theta_history = []
-    
-    for i in range(num_iters):
-        
+
+    for i in range(iterations):
         theta_history.append(list(theta))
-        gradient = np.dot(x.T, (h(theta,x) - y)) /m
-        theta=theta-alpha*gradient
+
+        h = h_1(theta, x)
+        theta[0] = theta[0] - (alpha/m) * (np.sum(h-y))
+        theta[1] = theta[1] - (alpha/m) * (np.sum((h-y) * x[:, 1]))
+        print(1)
         J_history.append(computeCost(x, y, theta))
-    
-    return theta, J_history, theta_history\
+
+    return theta, J_history, theta_history
+
     
 
 
 def predict(theta, x):
+    p = h_1(theta, x)
+    p[p >= 0.5] = 1
+    p[p < 0.5] = 0
 
-    return h(theta, x)
+    return p
 
 def normal (x):    
- norm = np.linalg.norm(x) 
- normal_array = x/norm
- return x    
+    min = np.min(x)
+    max = np.max(x)
+
+    x_norm = (x - min) / (max - min)
+
+    return x_norm
 
 def run ():
-    df = pd.read_csv (r"D:\ai intro\breast-cancer-wisconsin.csv")
-    df.columns=["Col"+str(i) for i in range(0, 11)]
-    x=df[['Col3']].values
-    y=df[['Col10']].values
-    benign = df.loc[y == 2]
-    malignant = df.loc[y == 4]
-    plotData(x,y,benign,malignant)
-    plt.show()
+    df = pd.read_csv (r"D:\ai intro\data.csv")
+    x=df[['area_mean']].values
+    y=df[['diagnosis']].values
     m, n = x.shape
-    x = np.concatenate([np.ones((m, 1)), x], axis=1 ) 
-    initial_theta = np.zeros(n+1)
-    initial_theta = initial_theta[:, np.newaxis]
-    cost = computeCost(x, y, initial_theta)
-    print('Cu parametrii theta = [0, 0, 0] \nEroarea calculata = %.3f' % cost)
-    test_theta = np.array([24, 2])
-    test_theta= test_theta[:, np.newaxis]
-    print(test_theta)
+    plt.hist(x[y == 'M'], bins=30)
+    plt.xlabel("Aria medie - Malign")
+    plt.ylabel("Frecventa") 
+    plt.show()
+
+    
+    plt.hist(x[y == 'B'], bins=30)
+    plt.xlabel("Aria medie - Belign")
+    plt.ylabel("Frecventa")
+    plt.show() 
+
+    z = 0
+    g = sigmoid(z)
+    print('g(', z, ') =', g)
+    x = np.concatenate([np.ones((m, 1)), x], axis=1)
+    y[y == 'M'] = 1
+    y[y == 'B'] = 0
+
+    test_theta = np.array([13, 5])
     cost = computeCost(x, y, test_theta)
-    print('Cu parametrii theta = [-24, 0.2] \nEroarea calculata = %.3f' % cost)
-    iterations = 10000
+    print('Cu parametrii theta = [%d, %d] \nEroarea calculata = %.3f' % (test_theta[0], test_theta[1], cost))
+
+    initial_theta = np.zeros(n+1)
+    x=normal(x)
+
+    iterations = 1000
     alpha = 0.001
-    theta, J_history, theta_history = gradientDescent(x ,y, initial_theta, alpha, iterations)
-    print('Parametrii theta obtinuti cu gradient descent:',theta)
+    theta, J_history, theta_history = gradientDescent(x, y, initial_theta, alpha, iterations)
+    print('Parametrii theta obtinuti cu gradient descent: {:.4f}, {:.4f}'.format(*theta))
+
     p = predict(theta, x)
-    print('Acuratetea pe setul de antrenare: {:.2f} %'.format(np.mean(p == y) * 100)) 
-    print('Accuratetea asteptata (approx): 89.00 %')
+    print('Acuratetea pe setul de antrenare: {:.2f} %'.format(np.mean(p == y) * 100))
+
+
 
 
 run()
