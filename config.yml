@@ -1,0 +1,16 @@
+net:
+  n1: 16
+  n2: 32
+  n3: 64
+  # conv: 
+  #   - 5
+  #   - 5
+  conv: [5,5]
+  conv2: [5,5]
+  img: [64,64]
+train:
+  bs: 128
+  lr: 0.1
+  opt: "Adam" # SGD, RMSprop
+  n_epochs: 10
+
