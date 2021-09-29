@@ -198,3 +198,4 @@ for step, (batch_data, batch_labels) in enumerate(normalized_test_ds):
 
 acc = np.sum(predictions == test_labels) / len(predictions)
 print(f'\nAcuratetea la test este {acc * 100}')
+print('t')
